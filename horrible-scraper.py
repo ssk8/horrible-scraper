@@ -21,15 +21,21 @@ def scrape(site, res):
     return magnet_list
 
 
-if __name__ == "__main__":
+def create_mag_file(page):
+    site = open_page(page)
+    with open(path + page + ".txt", "w") as text_file:
+        for resolution in resolutions:
+            magnets = scrape(site, resolution)
+            text_file.write(f'\n{20*"-"} {resolution} {20*"-"}\n \n')
+            for magnet in magnets:
+                text_file.write('   ' + magnet + '\n')
+                print(magnet)
 
+
+def main():
     for page in [page[:-5] for page in listdir(path) if page.endswith('html')]:
-        site = open_page(page)
+        create_mag_file(page)
 
-        with open(path + page + ".txt", "w") as text_file:
-            for resolution in resolutions:
-                magnets = scrape(site, resolution)
-                text_file.write(f'\n{20*"-"} {resolution} {20*"-"}\n \n')
-                for magnet in magnets:
-                    text_file.write('   ' + magnet + '\n')
-                    print(magnet)
+
+if __name__ == "__main__":
+    main()
