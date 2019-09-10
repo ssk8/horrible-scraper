@@ -1,31 +1,54 @@
+import argparse
 import os
-import sys
 import re
 
-cli_args = sys.argv[1:]
-path = '/home/osmc'
-new_dir, dir_name = '', os.path.join(path, 'TV Shows')
 
-if '-s' in cli_args:
-    season = cli_args[cli_args.index('-s')+1]
-else:
-    season = 1
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-t', '--torrent_header', default='[HorribleSubs] ')
+    parser.add_argument('-p', '--path', default='/home/osmc/')
+    parser.add_argument('-i', '--input_dir', default='Downloads')
+    parser.add_argument('-o', '--output_dir', default='TV Shows')
+    return parser.parse_args()
 
-if '-n' in cli_args:
-    new_dir = True
 
-files = [f for f in os.listdir(os.path.join(path, 'Downloads')) if f.endswith('.mkv') and f.startswith('[HorribleSubs] ')]
+def find_files(home, input_dir, header):
+    file_list = [f for f in os.listdir(os.path.join(home, input_dir)) if
+             f.startswith(header) and f.endswith('.mkv' or '.mp4')]
+    return sorted(file_list)
 
-for file in files:
-    new_name = file.replace('[HorribleSubs] ', '')
-    name_index = re.search(r" - [0-9]{2} \[", new_name).start()
-    if new_dir:
-        if new_name[0:name_index] not in os.listdir(os.path.join(path, 'TV Shows')):
-            new_dir = os.path.join(path, 'TV Shows', new_name[0:name_index])
-            os.mkdir(new_dir)
-        if new_name[0:name_index] in os.listdir(os.path.join(path, 'TV Shows')):
-            dir_name = os.path.join(path, 'TV Shows', new_name[0:name_index])
-    #new_name = f'{new_name[:name_index]} - S0{season}E{new_name[name_index + 3:]}'
-    new_name = '{} - S0{}E{}'.format(new_name[:name_index], season, new_name[name_index + 3:])
-    os.rename(os.path.join(path, 'Downloads', file), os.path.join(dir_name, new_name))
-    print(new_name)
+
+def get_new_name(old_name, header):
+    current_name = old_name.replace(header, '')
+    season_search = re.search("S[0-9] ", current_name) #fix for S9+
+    if season_search:
+        current_season = current_name[season_search.start()+1]
+    else:
+        current_season = 1
+    name_index = re.search(r" - [0-9]{2} \[", current_name).start()
+    current_dir_name = current_name[0:name_index]
+    current_name = '{} - S0{}E{}'.format(current_name[:name_index], current_season, current_name[name_index + 3:])
+    if season_search:
+        current_name = current_name.replace(' S{}'.format(current_season), '')
+        current_dir_name = current_dir_name.replace(' S{}'.format(current_season), '')
+    return current_name, current_dir_name
+
+
+def check_dir(directory):
+    if not os.path.exists(directory):
+        os.mkdir(directory)
+
+
+if __name__ == "__main__":
+    cli_args = get_args()
+    path, input_dir, output_dir = cli_args.path, cli_args.input_dir, cli_args.output_dir
+    files = find_files(path, input_dir, cli_args.torrent_header)
+
+    for file in files:
+        new_file_name, new_dir_name = get_new_name(file, cli_args.torrent_header)
+        #print(f'OLD: {file}\nNEW: "{new_file_name}" in dir "{new_dir_name}"\n')
+        print('OLD: {}\nNEW: "{}" in dir "{}"\n'.format(file, new_file_name, new_dir_name))
+        new_dir = os.path.join(path, output_dir, new_dir_name)
+        check_dir(new_dir)
+        os.rename(os.path.join(path, input_dir, file), os.path.join(new_dir, new_file_name))
+        
