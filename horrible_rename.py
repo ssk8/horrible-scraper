@@ -58,8 +58,11 @@ def main():
     if not cli_args.not_a_test:
         print('***This was just a test! use "-n" flag to write***')
 
+<<<<<<< HEAD
 
 if __name__ == "__main__":
     main()
 
 
+=======
+>>>>>>> 8dae391fe31a6788feaa35a62c03bdf5b82233dd
