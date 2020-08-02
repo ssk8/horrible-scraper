@@ -6,16 +6,17 @@ import re
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', '--torrent_header', default='[HorribleSubs] ')
-    parser.add_argument('-p', '--path', default='/home/osmc/')
-    parser.add_argument('-i', '--input_dir', default='Downloads')
-    parser.add_argument('-o', '--output_dir', default='TV Shows')
+    parser.add_argument('-p', '--path', default='/home/pi/')
+    parser.add_argument('-i', '--input_dir', default='downloads')
+    parser.add_argument('-o', '--output_dir', default='downloads/tvshows')
     parser.add_argument('-n', '--not_a_test', action='store_true')
+    parser.add_argument('-d', '--dont_move', action='store_true')
     return parser.parse_args()
 
 
 def find_files(home, input_dir, header):
     file_list = [f for f in os.listdir(os.path.join(home, input_dir)) if
-             f.startswith(header) and f.endswith('.mkv' or '.mp4')]
+             f.startswith(header) and f.endswith('.mkv' or '.mp4' or '.avi')]
     return sorted(file_list)
 
 
@@ -48,7 +49,7 @@ def main():
 
     for file in files:
         new_file_name, new_dir_name = get_new_name(file, t_header)
-        new_dir = os.path.join(path, output_dir, new_dir_name)
+        new_dir = os.path.join(path, output_dir, new_dir_name) if not cli_args.dont_move else os.path.join(path, input_dir)
         print('OLD: {}\nNEW: "{}"\n    in "{}"\n'.format(file, new_file_name, new_dir))
 
         if cli_args.not_a_test:
