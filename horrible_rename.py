@@ -16,7 +16,7 @@ def get_args():
 
 def find_files(home, input_dir, header):
     file_list = [f for f in os.listdir(os.path.join(home, input_dir)) if
-             f.startswith(header) and f.endswith('.mkv' or '.mp4' or '.avi')]
+            f.startswith(header) and f.endswith('.mkv' or '.mp4' or '.avi')]
     return sorted(file_list)
 
 
@@ -46,6 +46,9 @@ def main():
 
     print('File name header: "{}"\n'.format(t_header))
     files = find_files(path, input_dir, t_header)
+
+    if not cli_args.dont_move:
+        check_dir(os.path.join(path, output_dir))
 
     for file in files:
         new_file_name, new_dir_name = get_new_name(file, t_header)
